@@ -2,6 +2,9 @@ SRC = src
 EXE = $(SRC)
 VENV = .venv
 PYTHON = $(VENV)/bin/python3
+CACHE_DIR = $(CURDIR)/.uv_cache
+HF_CACHE_DIR = $(CURDIR)/.hf_cache
+HF_ENV = HF_HOME="$(HF_CACHE_DIR)" HUGGINGFACE_HUB_CACHE="$(HF_CACHE_DIR)/hub" TRANSFORMERS_CACHE="$(HF_CACHE_DIR)/transformers"
 
 
 TRASH = $(SRC)/__pycache__ $(VENV) .mypy_cache __pycache__
@@ -22,10 +25,12 @@ install:
 	@echo "$(BOLD)Initializing project environment:$(RESET)"
 
 	@echo "$(YELLOW)Creating virtual environment...$(RESET)"
-	@uv venv $(VENV) --clear > /dev/null 2>&1
+	@UV_CACHE_DIR="$(CACHE_DIR)" UV_LINK_MODE=copy $(HF_ENV) \
+		uv venv $(VENV) --clear > /dev/null 2>&1
 	@echo "$(GREEN)Virtual environment setup complete$(RESET)"
 
 	@bash -c '\
+		UV_CACHE_DIR="$(CACHE_DIR)" UV_LINK_MODE=copy $(HF_ENV) UV_PROJECT_ENVIRONMENT="$(VENV)" \
 		uv sync > /dev/null 2>&1 & pid=$$!; \
 		spin="-\|/"; i=0; \
 		while kill -0 $$pid 2>/dev/null; do \
@@ -40,23 +45,23 @@ install:
 	@echo "\n$(SUCCESS)Project can now be run safely!$(RESET)"
 
 run:
-	@uv run python -m $(EXE)
+	@$(HF_ENV) $(PYTHON) -m $(EXE)
 
 lint:
 	@echo "$(BOLD)Verifying project source code:$(RESET)"
 
 	@echo "$(YELLOW)Running flake8...$(RESET)"
-	@$(PYTHON) -m flake8
+	@$(HF_ENV) $(PYTHON) -m flake8
 	@echo "$(GREEN)No norm errors found$(RESET)"
 
 	@echo "\n$(YELLOW)Running mypy...$(RESET)"
-	@$(PYTHON) -m mypy . $(FLAGS)
+	@$(HF_ENV) $(PYTHON) -m mypy . $(FLAGS)
 	@echo "$(GREEN)No typing errors found$(RESET)"
 
 	@echo "\n$(SUCCESS)Success: no errors found in source code!$(RESET)"
 
 debug:
-	@$(PYTHON) -m pdb -m $(EXE) $(CONFIG)
+	@$(HF_ENV) $(PYTHON) -m pdb -m $(EXE) $(CONFIG)
 
 clean:
 	@echo "$(YELLOW)Initiating cleanup operation...$(RESET)"

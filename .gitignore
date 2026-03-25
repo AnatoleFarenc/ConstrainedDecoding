@@ -1,2 +1,5 @@
 __pycache__
 .venv
+.hf_cache
+.uv_cache
+.vscode

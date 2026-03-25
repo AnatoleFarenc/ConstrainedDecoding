@@ -23,4 +23,5 @@ class Constrain_decoding():
 
     def is_valid(self, token_id, idx: int) -> bool:
         """ Check if token is good """
+        ...
         
