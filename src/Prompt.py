@@ -10,6 +10,10 @@ class Prompt():
         self.sys_prompt = ""
         self.user_prompts: List[str] = []
         self.llm_prompt = ""
+        self.cur_u_prompt = ""
+        self.fun_name = []
+        self.fun_param = []
+        self.fun = ""
 
         self.init_sys_prompt()
         self.init_user_prompts()
@@ -71,9 +75,12 @@ class Prompt():
         except FileNotFoundError:
             raise FileNotFoundError("ERROR: File "
                                     f"{self.fun_path} not found")
+        self.fun = functions
 
         self.sys_prompt = ""
         for fn in functions:
+            self.fun_name.append(fn['name'])
+            self.fun_param.append(fn['parameters'])
             self.sys_prompt += f"- {fn['name']}: {fn["description"]}\n"
             for par_name, par_type in fn["parameters"].items():
                 self.sys_prompt += f"    {par_name} -> {par_type["type"]}\n"
@@ -95,9 +102,17 @@ class Prompt():
         for prompt in calling:
             self.user_prompts.append(prompt['prompt'])
 
+        self.cur_u_prompt = self.user_prompts[0]
+
     def gen_prompt(self, user_prompt: str) -> None:
         """ Gene promt for llm """
+        self.cur_u_prompt = user_prompt
         self.llm_prompt = ""
-        self.llm_prompt += f"<|im_start|>system\n{self.sys_prompt}<|im_end|>\n"
+        self.llm_prompt += "<|im_start|> The output must be formatted in "
+        self.llm_prompt += "JSON format: "
+        self.llm_prompt += "{[prompt]: [user_prompt], [name]: [function_name],"
+        self.llm_prompt += "[parameters]: {[pparameters_name]: "
+        self.llm_prompt += "[value_of_parameter], []...]}}\n\n"
+        self.llm_prompt += f"system\n{self.sys_prompt}<|im_end|>\n"
         self.llm_prompt += f"<|im_start|>user\n{user_prompt}<|im_end|>\n"
         self.llm_prompt += "<|im_start|>assistant\n"
