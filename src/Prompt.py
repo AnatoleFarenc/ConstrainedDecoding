@@ -1,5 +1,5 @@
-import json
 from typing import List
+import json
 
 
 class Prompt():
@@ -10,7 +10,8 @@ class Prompt():
         self.sys_prompt = ""
         self.user_prompts: List[str] = []
         self.llm_prompt = ""
-        self.cur_u_prompt = ""
+        self.cur_user_pr = ""
+        self.idx_prompt = 0
         self.fun_name = []
         self.fun_param = []
         self.fun = ""
@@ -68,6 +69,46 @@ class Prompt():
         """ Set llm prompt """
         self.__llm_prompt = llm_prompt
 
+    @property
+    def fun_name(self) -> List[str]:
+        """ Return list of name function autorized """
+        return self.__fun_name
+
+    @fun_name.setter
+    def fun_name(self, fun_name: List[str]) -> None:
+        """ Set fun name """
+        self.__fun_name = fun_name
+
+    @property
+    def fun_param(self) -> List[str]:
+        """ Return list of param autorized """
+        return self.__fun_param
+
+    @fun_param.setter
+    def fun_param(self, fun_param: List[str]) -> None:
+        """ Set fun param """
+        self.__fun_param = fun_param
+
+    @property
+    def fun(self) -> str:
+        """ Return string of fun json """
+        return self.__fun
+
+    @fun.setter
+    def fun(self, fun: str) -> None:
+        """ Set fun string """
+        self.__fun = fun
+
+    @property
+    def idx_prompt(self) -> int:
+        """ Return current idx_prompte """
+        return self.__idx_prompt
+
+    @idx_prompt.setter
+    def idx_prompt(self, idx: int) -> None:
+        """ Set idx prompt """
+        self.__idx_prompt = idx
+
     def init_sys_prompt(self) -> None:
         try:
             with open(self.fun_path) as f:
@@ -99,20 +140,32 @@ class Prompt():
             raise FileNotFoundError("ERROR: File "
                                     f"{self.call_path} not found")
 
-        for prompt in calling:
+        for i, prompt in enumerate(calling):
             self.user_prompts.append(prompt['prompt'])
-
-        self.cur_u_prompt = self.user_prompts[0]
+            self.user_prompts[i] = self.user_prompts[i].replace('"', '\'')
+        self.cur_user_pr = self.user_prompts[0]
 
     def gen_prompt(self, user_prompt: str) -> None:
         """ Gene promt for llm """
-        self.cur_u_prompt = user_prompt
+
+        info = ("You are a function calling agent. Your job is to call the "
+                "correct function depending on the users prompt. You have "
+                f"access to the following functions: {self.sys_prompt}. The "
+                "output must be a JSON object with the following keys: "
+                "prompt (string): The original natural-language request, "
+                "name (string): The name of the function to call, "
+                "parameters (object): All required arguments with the correct "
+                "types. Make sure to output ONLY the json object. ")
+
+        self.cur_user_pr = user_prompt
         self.llm_prompt = ""
-        self.llm_prompt += "<|im_start|> The output must be formatted in "
-        self.llm_prompt += "JSON format: "
+        self.llm_prompt += "<|im_start|>system\n "
+        self.llm_prompt += info + '\n'
+        self.llm_prompt += "The output must be formatted "
+        self.llm_prompt += "in JSON format:\n"
         self.llm_prompt += "{[prompt]: [user_prompt], [name]: [function_name],"
-        self.llm_prompt += "[parameters]: {[pparameters_name]: "
-        self.llm_prompt += "[value_of_parameter], []...]}}\n\n"
-        self.llm_prompt += f"system\n{self.sys_prompt}<|im_end|>\n"
-        self.llm_prompt += f"<|im_start|>user\n{user_prompt}<|im_end|>\n"
+        self.llm_prompt += " [parameters]: {[pparameters_name]: "
+        self.llm_prompt += "[value_of_parameter], []...]}}\n"
+        self.llm_prompt += f"{self.sys_prompt}<|im_end|>\n"
+        self.llm_prompt += f"<|im_start|>user\n{user_prompt}\n<|im_end|>\n"
         self.llm_prompt += "<|im_start|>assistant\n"

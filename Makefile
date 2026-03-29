@@ -80,3 +80,9 @@ clean:
 	fi
 	@rm -rf $(TRASH)
 	@echo "$(SUCCESS)\nCleanup complete!$(RESET)"
+
+clean_cache:
+	@echo "$(YELLOW)Initiating cleanup cache operation...$(RESET)"
+	@echo "$(RED) Removed: $(CACHE_DIR) $(HF_CACHE_DIR)$(RESET)"
+	@rm -rf $(CACHE_DIR) $(HF_CACHE_DIR)
+	@echo "$(SUCCESS)\nCleanup cache complete!$(RESET)"
