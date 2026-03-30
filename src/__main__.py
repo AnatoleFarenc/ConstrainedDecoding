@@ -1,61 +1,34 @@
-from llm_sdk import Small_LLM_Model
-from src.Prompt import Prompt
-from src.Constrained_decoding import Constrain_decoding, State
+# from llm_sdk import Small_LLM_Model
+# from src.Prompt import Prompt
+from src.Generator import Generator
+# from src.Constrained_decoding import Constrain_decoding, State
 import sys
-import json
+# import json
 
 
 def main():
-    func_def_paht = "data/input/functions_definition.json"
-    func_call_path = "data/input/function_calling_tests.json"
+    # func_def_paht = "data/input/functions_definition.json"
+    # func_call_path = "data/input/function_calling_tests.json"
+    func_def_paht = "moulinette/successfully~/input/functions_definition.json"
+    func_call_path = "moulinette/successfully~/input/function_calling_tests.json"
+    output = "data/output/test.json"
 
-    try:
-        prompt = Prompt(func_def_paht, func_call_path)
-    except FileNotFoundError as e:
-        print(e)
-        sys.exit()
+    # try:
+    #     prompt = Prompt(func_def_paht, func_call_path)
+    # except FileNotFoundError as e:
+    #     print(e)
+    #     sys.exit()
 
-    model = Small_LLM_Model()
-    prompt.gen_prompt(prompt.user_prompts[8])
-    cd = Constrain_decoding(model, prompt)
+    gen = Generator(func_def_paht, func_call_path, output)
+    # gen.generate_responce(gen.pr.user_prompts[10])
+    # print(gen.responce)
+    gen.generate_all_responce()
 
-    encode_pr = model.encode(prompt.llm_prompt)
-    input_ids = [int(x) for x in encode_pr[0]]
-    generated = []
-    state = State.OPEN_BRACE
-    max_steps = 500
-    steps = 0
 
-    while state != State.DONE:
-        steps += 1
-        if steps > max_steps:
-            raise RuntimeError("Generation stopped: max_steps reached")
-
-        generated_str = model.decode(generated)
-
-        valid_tok_id = cd.get_valid_tok_ids(state, generated_str)
-        if not valid_tok_id:
-            print(generated_str)
-            raise RuntimeError(f"No valid tokens for state: {state}")
-        valid_tok_set = set(valid_tok_id)
-
-        logits = model.get_logits_from_input_ids(input_ids)
-
-        for i in range(len(logits)):
-            if i not in valid_tok_set:
-                logits[i] = float("-inf")
-
-        next_token = logits.index(max(logits))
-        generated.append(next_token)
-        input_ids.append(next_token)
-
-        generated_str = model.decode(generated)
-        state = cd.next_state(state, generated_str)
-
-    print(generated_str)
-    json_outputs = json.loads(generated_str)
-    with open("data/output/test.json", 'w') as fd:
-        json.dump(json_outputs, fd, indent=4)
+    # print(generated_str)
+    # json_outputs = json.loads(generated_str)
+    # with open("data/output/test.json", 'w') as fd:
+    #     json.dump(json_outputs, fd, indent=4)
 
 
 if __name__ == "__main__":

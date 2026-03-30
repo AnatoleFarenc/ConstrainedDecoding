@@ -143,6 +143,7 @@ class Prompt():
         for i, prompt in enumerate(calling):
             self.user_prompts.append(prompt['prompt'])
             self.user_prompts[i] = self.user_prompts[i].replace('"', '\'')
+            self.user_prompts[i] = self.user_prompts[i].replace('\\', '\\\\')
         self.cur_user_pr = self.user_prompts[0]
 
     def gen_prompt(self, user_prompt: str) -> None:
@@ -155,7 +156,10 @@ class Prompt():
                 "prompt (string): The original natural-language request, "
                 "name (string): The name of the function to call, "
                 "parameters (object): All required arguments with the correct "
-                "types. Make sure to output ONLY the json object. ")
+                "types, if the types is number only write a float numbers in this "
+                "format: 1.0 and if the type is string only write between backslash string inside in "
+                'this format : "Say \\\\\\"hello\\\\\\" to {name}" .'
+                "Make sure to output ONLY the json object. ")
 
         self.cur_user_pr = user_prompt
         self.llm_prompt = ""
