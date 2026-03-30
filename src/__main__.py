@@ -2,8 +2,8 @@
 # from src.Prompt import Prompt
 from src.Generator import Generator
 # from src.Constrained_decoding import Constrain_decoding, State
-import sys
 # import json
+from src.Menu import Menu
 
 
 def main():
@@ -26,4 +26,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    app = Menu("data/input/functions_definition.json",
+               "data/input/function_calling_tests.json",
+               "data/output/test.json")
+    app.run()
+    # main()

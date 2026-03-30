@@ -9,6 +9,7 @@ dependencies = [
     "huggingface-hub>=0.20.0",
     "safetensors>=0.4.3",
     "accelerate",
+    "textual",
 ]
 
 [build-system]
