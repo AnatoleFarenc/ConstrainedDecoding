@@ -80,7 +80,7 @@ class Generator():
             try:
                 json_outputs.append(json.loads(self.responce))
             except json.decoder.JSONDecodeError as e:
-                print(self.responce)
+                print(f"*{self.responce}*")
                 print(e)
                 continue
             self.responces.append(self.responce)

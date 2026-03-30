@@ -180,7 +180,7 @@ class Constrained_decoding():
             case State.PARAM_VALUE_NUM:
                 return self.__toks_for_str('0123456789., eE}')
             case State.PARAM_VALUE_STR:
-                return [v for _, v in self.__tok_ids.items()]
+                return [v for k, v in self.__tok_ids.items()]
             case State.PARAM_VALUE_BOOL:
                 return self.__toks_for_words(["True ,}", "False ,}"])
         return []
@@ -218,7 +218,8 @@ class Constrained_decoding():
             if cur_response.endswith(', '):
                 return State.PARAM_KEY
         if state == State.PARAM_VALUE_STR:
-            if cur_response.endswith('"}}\n') or cur_response.endswith('"}}'):
+            # if cur_response.endswith('"}}\n') or cur_response.endswith('"}}'):
+            if '"}}' in cur_response:
                 return State.DONE
             if cur_response.endswith('" }'):
                 return State.CLOSE_BRACE

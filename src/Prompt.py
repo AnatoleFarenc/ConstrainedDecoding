@@ -158,7 +158,7 @@ class Prompt():
                 "parameters (object): All required arguments with the correct "
                 "types, if the types is number only write a float numbers in this "
                 "format: 1.0 and if the type is string only write between backslash string inside in "
-                'this format : "Say \\\\\\"hello\\\\\\" to {name}" .'
+                'this format : "Say \\"hello\\" to {name}" .'
                 "Make sure to output ONLY the json object. ")
 
         self.cur_user_pr = user_prompt

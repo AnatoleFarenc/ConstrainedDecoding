@@ -66,8 +66,8 @@
         "prompt": "Read C:\\Users\\john\\config.ini with latin-1 encoding",
         "name": "fn_read_file",
         "parameters": {
-            "path": "C:\\Users\\john\\config.ini",
-            "encoding": "latin-1"
+            "encoding": "latin-1",
+            "path": "C:\\Users\\john\\config.ini"
         }
     },
     {
@@ -81,7 +81,7 @@
         "prompt": "Format template: Say 'hello' to {name}",
         "name": "fn_format_template",
         "parameters": {
-            "template": "Say \\\"hello\\\" to {name}"
+            "template": "Say \"hello\" to {name}"
         }
     }
 ]

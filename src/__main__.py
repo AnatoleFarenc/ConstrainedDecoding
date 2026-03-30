@@ -20,15 +20,9 @@ def main():
     #     sys.exit()
 
     gen = Generator(func_def_paht, func_call_path, output)
-    # gen.generate_responce(gen.pr.user_prompts[10])
+    # gen.generate_responce(gen.pr.user_prompts[2])
     # print(gen.responce)
     gen.generate_all_responce()
-
-
-    # print(generated_str)
-    # json_outputs = json.loads(generated_str)
-    # with open("data/output/test.json", 'w') as fd:
-    #     json.dump(json_outputs, fd, indent=4)
 
 
 if __name__ == "__main__":
