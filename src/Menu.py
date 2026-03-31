@@ -7,10 +7,12 @@ from src.Generator import Generator
 
 
 class FileEditor:
+    """Load and expose JSON files for the TUI editor."""
 
     def __init__(self, path_fun: str, path_call: str,
                  path_output: str) -> None:
-        self.current_file = None
+        """Initialize tracked files and edit state."""
+        self.current_file: str | None = None
         self.is_editable = False
         self.files = {
             "functions": Path(path_fun),
@@ -120,7 +122,13 @@ class Menu(App[None]):
     }
     """
 
-    def __init__(self, path_fun, path_call, path_output):
+    def __init__(
+        self,
+        path_fun: str,
+        path_call: str,
+        path_output: str,
+    ) -> None:
+        """Initialize UI state and helper objects."""
         super().__init__()
         self.file_editor = FileEditor(path_fun, path_call, path_output)
         self.generator = Generator(path_fun, path_call, path_output)

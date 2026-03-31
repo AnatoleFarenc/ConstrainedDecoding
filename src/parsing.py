@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Any
 import sys
 from src import ID_FUNC, ID_CALL, ID_OUTPUT, MONO_TEST
 import json
@@ -6,7 +6,7 @@ from jsonschema import validate, ValidationError
 from pathlib import Path
 
 
-def get_parameters_value(param_key, default_value) -> str:
+def get_parameters_value(param_key: str, default_value: str) -> str:
     """ Get the value of parameter key """
     for i, param in enumerate(sys.argv):
         if param_key == param:
@@ -18,7 +18,7 @@ def get_parameters_value(param_key, default_value) -> str:
     return default_value
 
 
-def check_files(path: str, shema: Dict) -> None:
+def check_files(path: str, shema: dict[str, Any]) -> None:
     """ Check format of input files """
     if not Path(path).exists():
         raise FileNotFoundError(f"ERROR: File {path} not found")
@@ -30,7 +30,7 @@ def check_files(path: str, shema: Dict) -> None:
         raise ValueError(f"ERROR: Invalid format in {path}: {str(e)}")
 
 
-def parse_argument(arguments: List) -> List[str]:
+def parse_argument(arguments: list[str]) -> list[str]:
     """ Return path to input and output"""
     if "--functions_definition" in sys.argv:
         arguments[ID_FUNC] = get_parameters_value("--functions_definition",

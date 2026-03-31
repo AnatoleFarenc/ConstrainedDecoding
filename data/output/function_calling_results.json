@@ -1,8 +1,7 @@
 {
-    "prompt": "What is the sum of 2 and 3?",
-    "name": "fn_add_numbers",
+    "prompt": "Reverse the string 'hello'",
+    "name": "fn_reverse_string",
     "parameters": {
-        "a": 2,
-        "b": 3
+        "s": "hello"
     }
 }

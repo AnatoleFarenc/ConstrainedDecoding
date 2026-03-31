@@ -1,2 +1,7 @@
 [flake8]
-exclude=.venv
+exclude=
+    .venv,
+    llm_sdk,
+    .hf_cache,
+    .uv_cache,
+    .mypy_cache

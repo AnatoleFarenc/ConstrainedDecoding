@@ -2,7 +2,7 @@ from enum import Enum
 from src.Prompt import Prompt
 from llm_sdk import Small_LLM_Model
 import json
-from typing import List
+from typing import cast
 
 
 class State(Enum):
@@ -23,20 +23,22 @@ class State(Enum):
 
 
 class Constrained_decoding():
+    """Constrained decoder driven by a finite-state machine."""
+
     def __init__(self, model: Small_LLM_Model, prompt: Prompt):
         self.__model = model
         self.__pr = prompt
         self.__vocab_path = model.get_path_to_vocab_file()
         self.__tok_ids = self.__init_token_ids()
-        self.__tok_cache = {}
-        self.__tok_cache_txt = {}
+        self.__tok_cache: dict[str, list[int]] = {}
+        self.__tok_cache_txt: dict[int, str] = {}
         self.__user_pr = self.__pr.cur_user_pr
 
-    def __init_token_ids(self) -> dict:
+    def __init_token_ids(self) -> dict[str, int]:
         """ Init token ids dict """
         try:
             with open(self.__vocab_path) as f:
-                vocab = json.load(f)
+                vocab = cast(dict[str, int], json.load(f))
         except FileNotFoundError:
             raise FileNotFoundError("ERROR: File "
                                     f"{self.__vocab_path} not found")
@@ -56,11 +58,11 @@ class Constrained_decoding():
         if tok_id in self.__tok_cache_txt:
             return self.__tok_cache_txt[tok_id]
 
-        tok_txt = self.__model.decode([tok_id])
+        tok_txt = cast(str, self.__model.decode([tok_id]))
         self.__tok_cache_txt[tok_id] = tok_txt
         return tok_txt
 
-    def __toks_for_target(self, g_str: str, target: str) -> List[int]:
+    def __toks_for_target(self, g_str: str, target: str) -> list[int]:
         """ Return list of token for a target string """
         prefix = self.__target_prefix(g_str, target)
         if prefix == target:
@@ -82,7 +84,7 @@ class Constrained_decoding():
                 return name
         return ""
 
-    def __tok_param_key(self, cur_response: str) -> List[int]:
+    def __tok_param_key(self, cur_response: str) -> list[int]:
         """ Return list of token for key of parameter """
         f_name = self.__cur_fun_name(cur_response)
         if not f_name:
@@ -96,13 +98,14 @@ class Constrained_decoding():
         for fn in self.__pr.fun:
             if fn['name'] != f_name:
                 continue
-            for k in fn['parameters']:
+            params = cast(dict[str, dict[str, str]], fn['parameters'])
+            for k in params:
                 if f'"{k}"' in params_chunk:
                     continue
                 toks.extend(self.__toks_for_target(cur_response, f'"{k}": '))
         return toks
 
-    def __toks_for_str(self, str_name: str) -> List[int]:
+    def __toks_for_str(self, str_name: str) -> list[int]:
         """ Return list of token id for one string """
         if str_name in self.__tok_cache:
             return self.__tok_cache[str_name]
@@ -115,11 +118,11 @@ class Constrained_decoding():
         self.__tok_cache[str_name] = toks
         return toks
 
-    def __toks_for_words(self, words: List[str]) -> List[int]:
+    def __toks_for_words(self, words: list[str]) -> list[int]:
         """ Return list of token for differents word """
         toks = []
         for word in words:
-            toks.append(self.__toks_for_str(word))
+            toks += self.__toks_for_str(word)
         return toks
 
     def __last_params_key(self, cur_responce: str) -> str:
@@ -127,28 +130,16 @@ class Constrained_decoding():
         f_name = self.__cur_fun_name(cur_responce)
         for fn in self.__pr.fun:
             if fn['name'] == f_name:
-                for param_name, param_type in fn['parameters'].items():
+                params = cast(dict[str, dict[str, str]], fn['parameters'])
+                for param_name, param_type in params.items():
                     if (cur_responce.endswith(f'"{param_name}"')
                             or cur_responce.endswith(f'"{param_name}":')
                             or cur_responce.endswith(f'"{param_name}": ')):
-                        return param_type['type']
+                        return str(param_type['type'])
         return ""
 
-    def __check_end_params_str(self, cur_response: str) -> bool:
-        """ Check if string is end """
-        f_name = self.__cur_fun_name(cur_response)
-        if not f_name:
-            return []
-        marker = '"parameters": {'
-        if marker not in cur_response:
-            return []
-        params_chunk = cur_response.rsplit(marker, 1)[1]
-        if params_chunk.endswith('"}'):
-            return True
-        return False
-
     def get_valid_tok_ids(self, state: State,
-                          cur_responce: str = "") -> List[int]:
+                          cur_responce: str = "") -> list[int]:
         """ Return list of valid token id according to the current state"""
         match state:
             case State.OPEN_BRACE:
@@ -180,7 +171,7 @@ class Constrained_decoding():
             case State.PARAM_VALUE_NUM:
                 return self.__toks_for_str('0123456789., eE}')
             case State.PARAM_VALUE_STR:
-                return [v for k, v in self.__tok_ids.items()]
+                return [v for _, v in self.__tok_ids.items()]
             case State.PARAM_VALUE_BOOL:
                 return self.__toks_for_words(["True ,}", "False ,}"])
         return []

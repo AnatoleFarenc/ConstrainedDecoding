@@ -8,6 +8,7 @@ from pathlib import Path
 
 class Generator():
     """ Class to generate response of prompt """
+
     def __init__(self, input_func: str, input_call: str,
                  output_json: str) -> None:
         """ Init Generator attributs """
@@ -15,7 +16,7 @@ class Generator():
         self.pr = Prompt(input_func, input_call)
         self.max_steps = 500
         self.responce = ""
-        self.responces = []
+        self.responces: list[str] = []
         self.output = output_json
 
     @property
@@ -24,7 +25,7 @@ class Generator():
         return self.__model
 
     @model.setter
-    def model(self, model: Small_LLM_Model):
+    def model(self, model: Small_LLM_Model) -> None:
         """ Set model """
         self.__model = model
 
@@ -35,7 +36,7 @@ class Generator():
 
         encode_pr = self.model.encode(self.pr.llm_prompt)
         input_ids = [int(x) for x in encode_pr[0]]
-        generated = []
+        generated: list[int] = []
         state = State.OPEN_BRACE
         step = 0
 
@@ -50,11 +51,11 @@ class Generator():
                 print(f"State: {state}")
                 raise RuntimeError("ERROR: Generation stoped max_step reached")
 
-            valid_tok_ids = cd.get_valid_tok_ids(state, generated_str)
-            if not valid_tok_ids:
+            valid_tok_ids_list = cd.get_valid_tok_ids(state, generated_str)
+            if not valid_tok_ids_list:
                 print(f"Prompt: {generated_str}")
                 raise ValueError(f"ERROR: No valid token for state: {state}")
-            valid_tok_ids = set(valid_tok_ids)
+            valid_tok_ids = set(valid_tok_ids_list)
 
             logits = self.model.get_logits_from_input_ids(input_ids)
             for i in range(len(logits)):
@@ -69,7 +70,7 @@ class Generator():
             state = cd.next_state(state, generated_str)
         self.responce = generated_str
 
-    def write_responce_json(self):
+    def write_responce_json(self) -> None:
         """ Write one respons on output json file """
         try:
             json_output = json.loads(self.responce)

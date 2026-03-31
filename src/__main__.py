@@ -11,7 +11,7 @@ from src import ID_FUNC, ID_CALL, ID_OUTPUT, MONO_TEST, FUNC_SHEMA, CALL_SHEMA
 #     sys.exit()
 
 
-def main():
+def main() -> None:
     """ Entry for the program """
     arguments = [
         "data/input/functions_definition.json",

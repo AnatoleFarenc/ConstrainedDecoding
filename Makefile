@@ -10,7 +10,7 @@ HF_ENV = HF_HOME="$(HF_CACHE_DIR)" HUGGINGFACE_HUB_CACHE="$(HF_CACHE_DIR)/hub" T
 TRASH = $(SRC)/__pycache__ $(VENV) .mypy_cache __pycache__
 
 FLAGS = --warn-return-any --warn-unused-ignores --ignore-missing-imports \
-		--disallow-untyped-defs --check-untyped-defs --no-error-summary
+		--disallow-untyped-defs --check-untyped-defs
 
 # ANSI codes
 GREEN = \033[0;32m
