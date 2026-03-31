@@ -2,12 +2,14 @@ import json
 from llm_sdk import Small_LLM_Model
 from src.Prompt import Prompt
 from src.Constrained_decoding import Constrained_decoding, State
-import sys
+import os
+from pathlib import Path
 
 
 class Generator():
     """ Class to generate response of prompt """
-    def __init__(self, input_func: str, input_call: str, output_json: str) -> None:
+    def __init__(self, input_func: str, input_call: str,
+                 output_json: str) -> None:
         """ Init Generator attributs """
         self.model = Small_LLM_Model()
         self.pr = Prompt(input_func, input_call)
@@ -30,7 +32,7 @@ class Generator():
         """ Generate responce to user prompt """
         self.pr.gen_prompt(user_prompt)
         cd = Constrained_decoding(self.model, self.pr)
-        
+
         encode_pr = self.model.encode(self.pr.llm_prompt)
         input_ids = [int(x) for x in encode_pr[0]]
         generated = []
@@ -41,12 +43,12 @@ class Generator():
             step += 1
 
             generated_str = self.model.decode(generated)
+            print(generated_str)
 
             if step >= self.max_steps:
                 print(f"Prompt: {generated_str}")
                 print(f"State: {state}")
-                raise RuntimeError("ERROR: Generation stoped max_steps reached")
-
+                raise RuntimeError("ERROR: Generation stoped max_step reached")
 
             valid_tok_ids = cd.get_valid_tok_ids(state, generated_str)
             if not valid_tok_ids:
@@ -67,6 +69,19 @@ class Generator():
             state = cd.next_state(state, generated_str)
         self.responce = generated_str
 
+    def write_responce_json(self):
+        """ Write one respons on output json file """
+        try:
+            json_output = json.loads(self.responce)
+        except json.decoder.JSONDecodeError as e:
+            raise ValueError(f"ERRROR: Invalid format: {str(e)}")
+
+        output_dir = self.output.rsplit("/", 1)[0]
+        if not Path(output_dir).exists():
+            os.mkdir(output_dir)
+        with open(self.output, 'w') as fd:
+            json.dump(json_output, fd, indent=4)
+
     def generate_all_responce(self) -> None:
         """ Generate all responce to user prompt in json output"""
         json_outputs = []
@@ -80,11 +95,13 @@ class Generator():
             try:
                 json_outputs.append(json.loads(self.responce))
             except json.decoder.JSONDecodeError as e:
-                print(f"*{self.responce}*")
+                print(f"{self.responce}")
                 print(e)
                 continue
             self.responces.append(self.responce)
-        
+
+        output_dir = self.output.rsplit("/", 1)[0]
+        if not Path(output_dir).exists():
+            os.mkdir(output_dir)
         with open(self.output, 'w') as fd:
             json.dump(json_outputs, fd, indent=4)
-

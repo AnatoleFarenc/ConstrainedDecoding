@@ -10,6 +10,8 @@ dependencies = [
     "safetensors>=0.4.3",
     "accelerate",
     "textual",
+    "jsonschema",
+    "pydantic",
 ]
 
 [build-system]

@@ -32,26 +32,13 @@ class FileEditor:
         except json.JSONDecodeError:
             return "Error: to open file"
 
-    def save_file(self, content: str) -> bool:
-        if not self.current_file or not self.is_editable:
-            return False
-
-        file_path = self.files[self.current_file]
-        try:
-            json.loads(content)
-            with open(file_path, 'w') as fd:
-                fd.write(content)
-            return True
-        except (json.JSONDecodeError, IOError):
-            return "Error: to open file"
-
 
 class Menu(App[None]):
     CSS = """
     Screen {
         layout: horizontal;
-        background: rgb(0,0,0);
-        color: rgb(0, 255, 0);
+        background: #282828;
+        color: #ebdbb2;
     }
 
     #title {
@@ -59,12 +46,15 @@ class Menu(App[None]):
         text-align: center;
         width: 100%;
         padding: 1 0;
+        background: #3c3836;
+        color: #fe8019;
     }
 
     #sidebar {
-        width: 20;
-        border: solid;
+        width: 30;
+        border: solid #665c54;
         padding: 1 1;
+        background: #3c3836;
     }
 
     #editor-container {
@@ -76,12 +66,57 @@ class Menu(App[None]):
         margin: 1 0;
         width: 100%;
         text-style: none;
-        color: rgb(0, 255, 0);
+        color: #ebdbb2;
+        border: none;
+        padding: 1 0;
+    }
+
+    Button:hover {
+        background: #504945;
+        color: #fe8019;
     }
 
     #text-area {
         width: 1fr;
         height: 1fr;
+        background: #282828;
+        color: #ebdbb2;
+    }
+
+    #selector {
+        width: 100%;
+        height: 3;
+        margin: 1 0;
+    }
+
+    #selector Button {
+        width: auto;
+        min-width: 3;
+        max-width: 3;
+        margin: 0 0;
+        color: #fe8019;
+    }
+
+    #selector Label {
+        width: 1fr;
+        text-align: center;
+        margin: 0 1;
+        padding: 1 0;
+        color: #d79921;
+    }
+
+    .selector-btn{
+        width: 1fr;
+        margin: 1 0;
+        text-style: none;
+        color: #ebdbb2;
+    }
+
+    .selector-label{
+        width: 1fr;
+        text-align: center;
+        margin: 1 0;
+        color: #ebdbb2;
     }
     """
 
@@ -92,6 +127,7 @@ class Menu(App[None]):
         self.p_fun = path_fun
         self.p_call = path_call
         self.p_output = path_output
+        self.id_pr = -1
 
     def compose(self) -> ComposeResult:
         with Vertical():
@@ -101,10 +137,14 @@ class Menu(App[None]):
                     yield Button("Functions", id="btn-functions")
                     yield Button("Prompts", id="btn-prompts")
                     yield Button("Output", id="btn-output")
-                    yield Button("Save", id="btn-save")
-                    yield Button("Run", id="btn-run")
-                    yield Button("Clean", id="btn-clean")
-                    yield Button("Exit", id="btn-exit")
+                    with Horizontal(id="selector"):
+                        yield Button("<", id="btn-previous")
+                        yield Label("Prompt: ALL", id="label-nb-prompt")
+                        yield Button(">", id="btn-next")
+                    yield Button("Run", id="btn-run", classes="selector-btn")
+                    yield Button("Clean", id="btn-clean",
+                                 classes="selector-label")
+                    yield Button("Exit", id="btn-exit", classes="selector-btn")
 
                 with Vertical(id="editor-container"):
                     yield TextArea(id="text-area")
@@ -119,14 +159,25 @@ class Menu(App[None]):
 
         if button_id == "btn-functions":
             self.write_text_area(self.file_editor.load_file("functions"))
+            self.old_func_txt = self.query_one("#text-area", TextArea)
         elif button_id == "btn-prompts":
             self.write_text_area(self.file_editor.load_file("prompts"))
+            self.old_call_txt = self.query_one("#text-area", TextArea)
         elif button_id == "btn-output":
             self.write_text_area(self.file_editor.load_file("output"))
-        elif button_id == "btn-save":
-            self.action_save_file()
+        elif button_id == "btn-previous":
+            self.update_nb_prompt("minus")
+            self.update_label_pr()
+        elif button_id == "btn-next":
+            self.update_nb_prompt("add")
+            self.update_label_pr()
         elif button_id == "btn-run":
-            self.generator.generate_all_responce()
+            if self.id_pr == -1:
+                self.generator.generate_all_responce()
+            else:
+                self.generator.generate_responce(
+                    self.generator.pr.user_prompts[self.id_pr])
+                self.generator.write_responce_json()
             self.write_text_area(self.file_editor.load_file("output"))
             self.notify("Generation success", severity="information")
         elif button_id == "btn-clean":
@@ -137,14 +188,21 @@ class Menu(App[None]):
         else:
             return
 
-    def action_save_file(self) -> None:
-        if not self.file_editor.is_editable:
-            self.notify("File Read Only", severity="warning")
-            return
+    def update_nb_prompt(self, action: str) -> None:
+        """ Function to update the promp run """
+        if (action == "add"
+                and self.id_pr < len(self.generator.pr.user_prompts) - 1):
+            self.id_pr += 1
+        elif action == "minus" and self.id_pr > -1:
+            self.id_pr -= 1
 
-        text_area = self.query_one("#text-area", TextArea)
-        if self.file_editor.save_file(text_area.text):
-            self.notify("File Saved", severity="information")
-            self.generator = Generator(self.p_fun, self.p_call, self.p_output)
+    def update_label_pr(self) -> None:
+        """ Update label pr """
+        if self.id_pr == -1:
+            self.query_one("#label-nb-prompt", Label).update(
+                "Prompt: ALL"
+            )
         else:
-            self.notify("Error to save", severity="error")
+            self.query_one("#label-nb-prompt", Label).update(
+                f"Prompt: {self.id_pr}"
+            )

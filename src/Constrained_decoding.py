@@ -205,7 +205,7 @@ class Constrained_decoding():
         if state == State.PARAM_KEY and cur_response.endswith('":'):
             last_param = self.__last_params_key(cur_response)
             if (last_param == "number" or last_param == "integer"
-                or last_param == "float"):
+                    or last_param == "float"):
                 return State.PARAM_VALUE_NUM
             if last_param == "string":
                 return State.PARAM_VALUE_STR
@@ -218,7 +218,6 @@ class Constrained_decoding():
             if cur_response.endswith(', '):
                 return State.PARAM_KEY
         if state == State.PARAM_VALUE_STR:
-            # if cur_response.endswith('"}}\n') or cur_response.endswith('"}}'):
             if '"}}' in cur_response:
                 return State.DONE
             if cur_response.endswith('" }'):
