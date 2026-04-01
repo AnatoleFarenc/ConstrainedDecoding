@@ -4,6 +4,7 @@ from src.Prompt import Prompt
 from src.Constrained_decoding import Constrained_decoding, State
 import os
 from pathlib import Path
+import sys
 
 
 class Generator():
@@ -44,7 +45,9 @@ class Generator():
             step += 1
 
             generated_str = self.model.decode(generated)
-            print(generated_str)
+
+            if "--token" in sys.argv:
+                print(generated_str)
 
             if step >= self.max_steps:
                 print(f"Prompt: {generated_str}")

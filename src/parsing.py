@@ -1,6 +1,6 @@
 from typing import Any
 import sys
-from src import ID_FUNC, ID_CALL, ID_OUTPUT, MONO_TEST
+from src import ID_FUNC, ID_CALL, ID_OUTPUT, MONO_TEST, MENU
 import json
 from jsonschema import validate, ValidationError
 from pathlib import Path
@@ -44,4 +44,6 @@ def parse_argument(arguments: list[str]) -> list[str]:
     if "--mono_test" in sys.argv:
         arguments[MONO_TEST] = get_parameters_value("--mono_test",
                                                     arguments[MONO_TEST])
+    if "--menu" in sys.argv:
+        arguments[MENU] = "true"
     return arguments

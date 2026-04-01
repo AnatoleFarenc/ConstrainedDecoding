@@ -4,6 +4,7 @@ ID_FUNC = 0
 ID_CALL = 1
 ID_OUTPUT = 2
 MONO_TEST = 3
+MENU = 4
 
 FUNC_SHEMA = {
   "$schema": "http://json-schema.org/draft-07/schema#",

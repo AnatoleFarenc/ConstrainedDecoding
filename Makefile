@@ -7,7 +7,7 @@ HF_CACHE_DIR = $(CURDIR)/.hf_cache
 HF_ENV = HF_HOME="$(HF_CACHE_DIR)" HUGGINGFACE_HUB_CACHE="$(HF_CACHE_DIR)/hub" TRANSFORMERS_CACHE="$(HF_CACHE_DIR)/transformers"
 
 
-TRASH = $(SRC)/__pycache__ $(VENV) .mypy_cache __pycache__
+TRASH = $(SRC)/__pycache__ $(VENV) .mypy_cache __pycache__ data/output
 
 FLAGS = --warn-return-any --warn-unused-ignores --ignore-missing-imports \
 		--disallow-untyped-defs --check-untyped-defs

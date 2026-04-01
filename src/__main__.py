@@ -2,13 +2,8 @@ from src.Generator import Generator
 from src.Menu import Menu
 from src.parsing import parse_argument, check_files
 import sys
-from src import ID_FUNC, ID_CALL, ID_OUTPUT, MONO_TEST, FUNC_SHEMA, CALL_SHEMA
-
-# try:
-#     prompt = Prompt(func_def_paht, func_ID_call)
-# except FileNotFoundError as e:
-#     print(e)
-#     sys.exit()
+from src import ID_FUNC, ID_CALL, ID_OUTPUT, MONO_TEST
+from src import FUNC_SHEMA, CALL_SHEMA, MENU
 
 
 def main() -> None:
@@ -17,7 +12,8 @@ def main() -> None:
         "data/input/functions_definition.json",
         "data/input/function_calling_tests.json",
         "data/output/function_calling_results.json",
-        "-1"
+        "-1",
+        "false"
     ]
     try:
         arguments = parse_argument(arguments)
@@ -32,7 +28,7 @@ def main() -> None:
         print("End of programe")
         sys.exit()
 
-    if len(sys.argv) == 1:
+    if arguments[MENU] == "true":
         app = Menu(arguments[ID_FUNC], arguments[ID_CALL],
                    arguments[ID_OUTPUT])
         app.run()
