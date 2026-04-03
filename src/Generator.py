@@ -41,7 +41,6 @@ class Generator():
         state = State.OPEN_BRACE
         step = 0
 
-
         while state != State.DONE:
             step += 1
 
