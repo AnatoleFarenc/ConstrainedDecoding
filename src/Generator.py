@@ -5,6 +5,23 @@ from src.Constrained_decoding import Constrained_decoding, State
 import os
 from pathlib import Path
 import sys
+from pydantic import BaseModel, Field
+
+
+class GeneratorConfig(BaseModel):
+    """Validated configuration used to initialize Generator."""
+
+    input_func: str
+    input_call: str
+    output_json: str
+    max_steps: int = 500
+
+
+class GeneratorState(BaseModel):
+    """Runtime state container for generated outputs."""
+
+    responce: str = ""
+    responces: list[str] = Field(default_factory=list)
 
 
 class Generator():
@@ -13,12 +30,19 @@ class Generator():
     def __init__(self, input_func: str, input_call: str,
                  output_json: str) -> None:
         """ Init Generator attributs """
+        config = GeneratorConfig(
+            input_func=input_func,
+            input_call=input_call,
+            output_json=output_json,
+        )
+        state = GeneratorState()
+
         self.model = Small_LLM_Model()
-        self.pr = Prompt(input_func, input_call)
-        self.max_steps = 500
-        self.responce = ""
-        self.responces: list[str] = []
-        self.output = output_json
+        self.pr = Prompt(config.input_func, config.input_call)
+        self.max_steps = config.max_steps
+        self.responce = state.responce
+        self.responces = state.responces
+        self.output = config.output_json
 
     @property
     def model(self) -> Small_LLM_Model:
@@ -80,8 +104,9 @@ class Generator():
         except json.decoder.JSONDecodeError as e:
             raise ValueError(f"ERRROR: Invalid format: {str(e)}")
 
-        output_dir = self.output.rsplit("/", 1)[0]
-        if not Path(output_dir).exists():
+        path = self.output.rsplit("/", 1)
+        output_dir = path[0]
+        if not Path(output_dir).exists() and len(path) > 1:
             os.mkdir(output_dir)
         with open(self.output, 'w') as fd:
             json.dump(json_output, fd, indent=4)
@@ -104,8 +129,9 @@ class Generator():
                 continue
             self.responces.append(self.responce)
 
-        output_dir = self.output.rsplit("/", 1)[0]
-        if not Path(output_dir).exists():
+        path = self.output.rsplit("/", 1)
+        output_dir = path[0]
+        if not Path(output_dir).exists() and len(path) > 1:
             os.mkdir(output_dir)
         with open(self.output, 'w') as fd:
             json.dump(json_outputs, fd, indent=4)

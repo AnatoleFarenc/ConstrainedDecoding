@@ -1,4 +1,5 @@
 [
+
     {
         "name": "fn_add_numbers",
         "description": "Add two numbers together and return their sum.",
@@ -16,8 +17,8 @@
     },
     {
         "name": "fn_greet",
-        "description": "Generate a greeting message for a person by name.",
-        "parameters": {
+        "description": "Generate a greeting message for someone",
+       	"parameters": {
             "name": {
                 "type": "string"
             }

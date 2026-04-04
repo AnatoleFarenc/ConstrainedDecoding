@@ -3,7 +3,23 @@ from textual.widgets import Label, Button, TextArea
 from textual.containers import Horizontal, Vertical
 import json
 from pathlib import Path
+from pydantic import BaseModel
 from src.Generator import Generator
+
+
+class FileEditorConfig(BaseModel):
+    """Validated configuration for FileEditor."""
+
+    path_fun: str
+    path_call: str
+    path_output: str
+
+
+class FileEditorState(BaseModel):
+    """Runtime state for FileEditor."""
+
+    current_file: str | None = None
+    is_editable: bool = False
 
 
 class FileEditor:
@@ -12,12 +28,19 @@ class FileEditor:
     def __init__(self, path_fun: str, path_call: str,
                  path_output: str) -> None:
         """Initialize tracked files and edit state."""
-        self.current_file: str | None = None
-        self.is_editable = False
+        config = FileEditorConfig(
+            path_fun=path_fun,
+            path_call=path_call,
+            path_output=path_output,
+        )
+        state = FileEditorState()
+
+        self.current_file = state.current_file
+        self.is_editable = state.is_editable
         self.files = {
-            "functions": Path(path_fun),
-            "prompts": Path(path_call),
-            "output": Path(path_output),
+            "functions": Path(config.path_fun),
+            "prompts": Path(config.path_call),
+            "output": Path(config.path_output),
         }
 
     def load_file(self, file_key: str) -> str:

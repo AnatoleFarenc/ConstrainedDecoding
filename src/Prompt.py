@@ -1,21 +1,48 @@
 from typing import Any
 import json
+from pydantic import BaseModel, Field
+
+
+class PromptConfig(BaseModel):
+    """Validated input configuration for Prompt."""
+
+    functions_path: str
+    call_path: str
+
+
+class PromptState(BaseModel):
+    """Runtime state container for Prompt."""
+
+    sys_prompt: str = ""
+    user_prompts: list[str] = Field(default_factory=list)
+    llm_prompt: str = ""
+    cur_user_pr: str = ""
+    idx_prompt: int = 0
+    fun_name: list[str] = Field(default_factory=list)
+    fun_param: list[dict[str, dict[str, str]]] = Field(default_factory=list)
+    fun: list[dict[str, Any]] = Field(default_factory=list)
 
 
 class Prompt():
     """ Class for manage prompte """
 
     def __init__(self, functions_path: str, call_path: str) -> None:
-        self.fun_path = functions_path
-        self.call_path = call_path
-        self.sys_prompt = ""
-        self.user_prompts: list[str] = []
-        self.llm_prompt = ""
-        self.cur_user_pr = ""
-        self.idx_prompt = 0
-        self.fun_name = []
-        self.fun_param = []
-        self.fun = []
+        config = PromptConfig(
+            functions_path=functions_path,
+            call_path=call_path,
+        )
+        state = PromptState()
+
+        self.fun_path = config.functions_path
+        self.call_path = config.call_path
+        self.sys_prompt = state.sys_prompt
+        self.user_prompts = state.user_prompts
+        self.llm_prompt = state.llm_prompt
+        self.cur_user_pr = state.cur_user_pr
+        self.idx_prompt = state.idx_prompt
+        self.fun_name = state.fun_name
+        self.fun_param = state.fun_param
+        self.fun = state.fun
 
         self.init_sys_prompt()
         self.init_user_prompts()

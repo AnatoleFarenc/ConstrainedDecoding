@@ -3,6 +3,7 @@ from src.Prompt import Prompt
 from llm_sdk import Small_LLM_Model
 import json
 from typing import cast
+from pydantic import BaseModel, Field
 
 
 class State(Enum):
@@ -22,16 +23,25 @@ class State(Enum):
     DONE = 13              # end
 
 
+class ConstrainedDecodingState(BaseModel):
+    """Runtime cache and state for Constrained_decoding."""
+
+    tok_cache: dict[str, list[int]] = Field(default_factory=dict)
+    tok_cache_txt: dict[int, str] = Field(default_factory=dict)
+
+
 class Constrained_decoding():
     """Constrained decoder driven by a finite-state machine."""
 
     def __init__(self, model: Small_LLM_Model, prompt: Prompt):
+        state = ConstrainedDecodingState()
+
         self.__model = model
         self.__pr = prompt
         self.__vocab_path = model.get_path_to_vocab_file()
         self.__tok_ids = self.__init_token_ids()
-        self.__tok_cache: dict[str, list[int]] = {}
-        self.__tok_cache_txt: dict[int, str] = {}
+        self.__tok_cache = state.tok_cache
+        self.__tok_cache_txt = state.tok_cache_txt
         self.__user_pr = self.__pr.cur_user_pr
 
     def __init_token_ids(self) -> dict[str, int]:
