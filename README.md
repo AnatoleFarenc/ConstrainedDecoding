@@ -1,5 +1,3 @@
-*This project has been created part of the 42 curriculum by anfarenc*
-
 # Description
 This project aims to teach us how to optimize the output of an SLM (Small Language Model). The accuracy of correct responses for this type of model is usually around 30%. The goal of this project is to implement a Constrained Decoding approach that filters tokens one by one and only selects those that are valid according to the expected output. This allows us to get closer to 100% correct responses.
 
